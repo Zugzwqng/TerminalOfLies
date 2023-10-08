@@ -15,3 +15,5 @@ To use this program for the second time and onwards:
   3. Run the command "python3 TerminalOfLies.py"
 
 To get help installing, or to report bugs, contact crystqllized on Discord (Zugzwang on FoL).
+
+Written by Zugzwang, inspired by TodaysStory.
