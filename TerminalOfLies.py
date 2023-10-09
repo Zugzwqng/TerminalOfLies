@@ -386,7 +386,6 @@ def voteOption(posts):
     print("Clipboard is not accessible...")
   return votes, playerColorDict
 
-
 gameThreadURL = input("Enter the URL of the game thread: ")
 topicNumber = str(getTopicNumber(gameThreadURL))
 posts = initializePosts(topicNumber)
