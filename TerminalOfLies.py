@@ -1,4 +1,4 @@
-# Terminal of Lies, version 1.0, 10/7/2023
+# Terminal of Lies, version 1.0.1, 10/9/2023
 # By Zugzwang (crystqllized on Discord)
 # Inspired by TodaysStory
 
