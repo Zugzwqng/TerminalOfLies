@@ -15,15 +15,15 @@ from sys import stdout
 
 #given the link of the thread, returns the topic number.
 def getTopicNumber(gameLink):
-  discard, remainder = splitOnce(gameLink, "fortressoflies.com/t/")
-  discard, remainder = splitOnce(remainder, "/")
-  result, discard = splitOnce(remainder, "/")
+  discard, remainder, discard2 = splitOnce(gameLink, "fortressoflies.com/t/")
+  discard, remainder, discard2 = splitOnce(remainder, "/")
+  result, discard, discard2 = splitOnce(remainder, "/")
   return result
 
 #given the link of the thread, returns the link to the first post.
 def getLinkToFirstPost(gameLink):
   topicNumber = getTopicNumber(gameLink)
-  baseLinkMinusTopicNumber, discard = splitOnce(gameLink, "/" + topicNumber)
+  baseLinkMinusTopicNumber, discard, discard2 = splitOnce(gameLink, "/" + topicNumber)
   return baseLinkMinusTopicNumber + "/" + topicNumber + "/"
 
 #given the pagenumber and the base raw link, returns the content on that page.
@@ -52,28 +52,33 @@ def cleanPosts(posts):
   return newPosts
 
 #splits the string, but only into two parts. uses the first instance of delimiter
-def splitOnce(mainString, delimiter):
-  if mainString.find(delimiter) == -1:
-    return mainString, ""
-  delimiterIndex = mainString.find(delimiter)
-  return mainString[0:delimiterIndex], mainString[delimiterIndex + len(delimiter):]
+#returns True if the delimiter was found in the string
+def splitOnce(mainString, delimiter, ignoreCase=False):
+  mainStringLoweredIfApplicable = mainString
+  if (ignoreCase):
+    delimiter = delimiter.lower()
+    mainStringLoweredIfApplicable = mainStringLoweredIfApplicable.lower()
+  if mainStringLoweredIfApplicable.find(delimiter) == -1:
+    return mainString, "", False
+  delimiterIndex = mainStringLoweredIfApplicable.find(delimiter)
+  return mainString[0:delimiterIndex], mainString[delimiterIndex + len(delimiter):], True
 
 #returns mainString, but with all occurences of toSearchFor substituted with toReplaceWith
-def replaceAll(mainString, toSearchFor, toReplaceWith):
+def replaceAll(mainString, toSearchFor, toReplaceWith, ignoreCase=False):
   while(True):
-    start, end = splitOnce(mainString, toSearchFor)
-    if end == "":
+    start, end, delimiterFound = splitOnce(mainString, toSearchFor, ignoreCase)
+    if not delimiterFound:
       return mainString
     mainString = start + toReplaceWith + end
 
 #This method takes in a post that is a string with poster, time, postnumber, and content, and splits these parts into 4 elements of an array
 def basePostToArray(post):
   splitPost = []
-  toBeAdded, remainder = splitOnce(post, " | ")
+  toBeAdded, remainder, discard = splitOnce(post, " | ")
   splitPost.append(toBeAdded)
-  toBeAdded, remainder = splitOnce(remainder, " | #")
+  toBeAdded, remainder, discard = splitOnce(remainder, " | #")
   splitPost.append(toBeAdded)
-  toBeAdded, remainder = splitOnce(remainder, "\\n\\n")
+  toBeAdded, remainder, discard = splitOnce(remainder, "\\n\\n")
   splitPost.append(toBeAdded)
   splitPost.append(remainder)
   return splitPost
@@ -167,7 +172,7 @@ def outputPosts(posts, topicNumber, gameThreadURL, doDisplay, copyQuotes, copyLi
       quoteString = quoteString + "\"]"
       toBeCopied = toBeCopied + quoteString
       #toBeCopied = toBeCopied + str( +  + ", post:" + str(cleanNumber(post[2])), ", topic:" + topicNumber + "\"]")
-      toBeCopied += "\n" + outputPost(post, False)
+      toBeCopied += "\n" + replaceAll(replaceAll(outputPost(post, False), "[/vote]", "[vote]"), "[/v]", "[v]")
       toBeCopied += "[/quote]" + "\n"
     try:
       pyperclip.copy(toBeCopied)
@@ -176,7 +181,6 @@ def outputPosts(posts, topicNumber, gameThreadURL, doDisplay, copyQuotes, copyLi
   if copyLinks:
     toBeCopied = ""
     link = getLinkToFirstPost(gameThreadURL)
-    print(link)
     for post in posts:
       toBeCopied = toBeCopied + link + post[2] + "\n"
     try:
@@ -385,6 +389,7 @@ def voteOption(posts):
   except:
     print("Clipboard is not accessible...")
   return votes, playerColorDict
+
 
 gameThreadURL = input("Enter the URL of the game thread: ")
 topicNumber = str(getTopicNumber(gameThreadURL))
