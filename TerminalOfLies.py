@@ -2,7 +2,6 @@
 # By Zugzwang (crystqllized on Discord)
 # Inspired by TodaysStory
 
-
 import urllib.request
 import pyperclip
 import re
@@ -333,9 +332,6 @@ def doColorTags(toBeColored, color):
     return r'[color="00ff00"]' + toBeColored + r'[/color]'
   return toBeColored
 
-
-
-
 def voteOption(posts):
   doSubsetOfPlayers = input('If you want to see only the votes made by a subset of players, enter "s". Otherwise, enter anything else: ').lower() == "s"
   chosenPlayers = []
@@ -389,8 +385,6 @@ def voteOption(posts):
   except:
     print("Clipboard is not accessible...")
   return votes, playerColorDict
-
-
 
 
 gameThreadURL = input("Enter the URL of the game thread: ")
