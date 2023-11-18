@@ -16,7 +16,7 @@ To use this program for the second time and onwards:
 
 To install updates:
   1. Go to your TerminalOfLies folder
-  2. Run the command "git pull origin main"
+  2. Run the command "git reset --hard origin/main"
 
 To get help installing, or to report bugs, contact crystqllized on Discord (Zugzwang on FoL).
 
