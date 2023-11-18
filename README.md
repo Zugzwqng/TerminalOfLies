@@ -15,7 +15,7 @@ To use this program for the second time and onwards:
   3. Run the command "python3 TerminalOfLies.py"
 
 To install updates:
-  1. Go to your TerminalOfLies folder
+  1. Enter your TerminalOfLies folder
   2. Run the command "git reset --hard origin/main"
 
 To get help installing, or to report bugs, contact crystqllized on Discord (Zugzwang on FoL).
