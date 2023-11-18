@@ -1,4 +1,4 @@
-# Terminal of Lies, version 1.1, 11/17/2023
+# Terminal of Lies, version 1.1.1, 11/17/2023
 # By Zugzwang (crystqllized on Discord)
 # Inspired by TodaysStory
 
@@ -213,7 +213,6 @@ def accessGame(gameObject: game.Game):
     if (command == "exit"):
       return
 
-os.chdir("./TerminalOfLies")
 print(os.getcwd())
 if overallDirectoryName not in os.listdir():
   f = open(overallDirectoryName, "w")
