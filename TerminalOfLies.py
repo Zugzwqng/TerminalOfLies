@@ -1,4 +1,4 @@
-# Terminal of Lies, version 1.1.1, 11/17/2023
+# Terminal of Lies, version 1.2, 11/20/2023
 # By Zugzwang (crystqllized on Discord)
 # Inspired by TodaysStory
 
@@ -7,32 +7,20 @@ import StringUtils as sUtil
 import game
 import games_list
 import os
+import menu
+import csv
 
-import urllib.request
 import pyperclip
-import re
+#import re
 import time
-import colorama
-from colorama import Fore, Style, init
-init(convert=True)
-from sys import stdout
+#import colorama
+from colorama import Fore#, Style, init
+#init(convert=True)
+#from sys import stdout
 
 overallDirectoryName = "overallGamesDirectory.csv"
+readsTiers = "readTiers.csv"
 
-
-
-def displayMenu():
-  print("Available Commands: ")
-  
-  print("'MultiISO' - Copies an ISO of player(s) to the clipboard; either quotes or links")
-  print("'Vote compilation' - Copies a vote compilation to the clipboard")
-
-  print("'Add alias'")
-  print("'Remove alias'")
-  print("'Align' - Modify player alignments")
-  print("'Print playerlist'")
-  print("'Menu'")
-  print("'Exit'")
 
 #takes a string and a colorama Fore color, and colors it with [color] tags
 def doColorTags(toBeColored, color):
@@ -49,6 +37,7 @@ def voteOption(gameObject: game.Game):
   chosenPlayers = [] if doSubsetOfPlayers else None
   while(doSubsetOfPlayers):
     player = input("Enter the name of each player you want to see the votes of. When finished, enter -1: ").lower()
+    player = gameObject.aliases.get(player, player)
     if player == "-1":
       break
     chosenPlayers.append(player)
@@ -67,36 +56,8 @@ def voteOption(gameObject: game.Game):
   except:
     print("Clipboard is not accessible...")
 
-def displayOverallMenu():
-  print("Available Commands: ")
-  print("'create' - Create new game ")
-  print("'enter' - Enter a game")
-  print("'archive' - Archive a game")
-  print("'delete' - Delete a game (file will still be present, but program will no longer see it)")
-  print("'list' - Lists all active games")
-  print("'list all' - Lists all games (both current and archived)")
-  print("'menu' - Displays this menu")
-  print("'exit' - Exit")
 
-# def listCurrentGames():
-#   print("to be implemented")
-
-
-# displayOverallMenu()
-# listCurrentGames()
-# command = input("Enter the command you want to do: ").lower()
-# while(True):
-#   if(command == "create"):
-#     createGame()
-#   if(command == "enter"):
-#     enterGame()
-#   if(command == "archive"):
-#     archiveGame()
-#   if(command == "exit"):
-#     break
-
-
-def addAlias(gameObject):
+def addAlias(gameObject: game.Game):
   player = input("Enter the name of the player you would like to add an alias for: ").lower()
   if (gameObject.playerExists(player)):
     alias = input("Enter the new alias of the player: ").lower()
@@ -107,7 +68,7 @@ def addAlias(gameObject):
   else:
     print("No player with such name!")
 
-def removeAlias(gameObject):
+def removeAlias(gameObject: game.Game):
   alias = input("Enter the alias you would like to remove: ").lower()
   if gameObject.aliasExists(alias):
     gameObject.removeAlias(alias)
@@ -122,6 +83,7 @@ def printPlayerlist(gameObject: game.Game):
 
 def changeAlignment(gameObject: game.Game):
   player = input("Enter the name of the player you would like to change the alignment of: ").lower()
+  player = gameObject.aliases.get(player, player)
   if (gameObject.playerExists(player)):
     print("Possible alignments: ")
     print("'t' - town")
@@ -142,11 +104,12 @@ def changeAlignment(gameObject: game.Game):
 
 def createGame(gamesList: games_list.GamesList):
   gameTitle = input("Enter the title you would like to use for the file that stores this game: ").lower()
+  filename = gameTitle + ".csv"
   if gameTitle.find(".") != -1:
       print("The filename cannot include a period. ")
   elif gamesList.gameExists(gameTitle):
       print("This name is already taken! ")
-  elif gameTitle == overallDirectoryName[0:overallDirectoryName.find(".")]:
+  elif filename == overallDirectoryName or filename == readsTiers:
       print("This name is reserved.")
   else:
       gameThreadURL = input("Enter the URL of the game thread: ")
@@ -156,10 +119,18 @@ def createGame(gamesList: games_list.GamesList):
 def archiveGame(gamesList: games_list.GamesList):
   gameTitle = input("Enter the title of the game you want to archive: ").lower()
   if not gamesList.gameIsActive(gameTitle):
-      print("This game either does exist, or is not archived. ")
+      print("This game either does not exist, or is archived.")
   else:
       gamesList.archiveGame(gameTitle)
       print("Game archived successfully.")
+
+def restoreGame(gamesList: games_list.GamesList):
+  gameTitle = input("Enter the title of the game you want to restore: ").lower()
+  if not gamesList.gameIsArchived(gameTitle):
+      print("This game either does not exist, or is not archived.")
+  else:
+      gamesList.restoreGame(gameTitle)
+      print("Game restored successfully.")
 
 def deleteGame(gamesList: games_list.GamesList):
   gameTitle = input("Enter the title of the game you want to delete: ").lower()
@@ -179,17 +150,87 @@ def enterGame(gamesList: games_list.GamesList):
 
 def listGames(gamesList: games_list.GamesList, showArchived=True):
   createdGames, archivedGames = gamesList.getCreatedAndArchivedGames()
-  print("Current games: ")
-  for game in createdGames:
-    print(game)
+  print("Current games: \n" + "\n".join(createdGames)) if len(createdGames) > 0 else print("No current games.")
   if showArchived:
-    print("Archived games: ")
-    for game in archivedGames:
-      print(game)
+    print("Archived games: \n" + "\n".join(archivedGames)) if len(archivedGames) > 0 else print("No archived games.")
+
+def customizeTiers():
+  allTiers = []
+  readsFile = open(readsTiers, "r")
+  csvfile = csv.reader(readsFile, delimiter=",")
+  for tierList in csvfile:
+    allTiers = tierList
+    break
+  readsFile.close()
+  menu.readTierCustomizationMenu()
+
+  while(True):
+    command = input("Enter the command you want to do: ").lower()
+    if (command == "current"):
+      print("\n".join(allTiers))
+    if (command == "add"):
+      newTier = input("Enter the name of the new tier: ").lower()
+      location = input("Enter the tier you would like to put this new tier above, or 'bottom' if you want to put it at the bottom: ").lower()
+      if location == "bottom":
+        allTiers.append(newTier)
+      else:
+        try:
+          allTiers.insert(allTiers.index(location), newTier)
+          print("Tier added.")
+        except:
+          print("That tier does not exist!")
+    if (command == "remove"):
+      toRemove = input("Enter the name of the tier to remove: ").lower()
+      try:
+        allTiers.remove(toRemove)
+        print("Tier removed.")
+      except:
+        print("That tier does not exist.")
+    if (command == "menu"):
+      menu.readTierCustomizationMenu()
+    if (command == "exit"):
+      csvfile = open(readsTiers, "w")
+      csvwriter = csv.writer(csvfile, delimiter=",")
+      csvwriter.writerow(allTiers)
+      csvfile.close()
+      break
+    
+
+
+
+def updateRead(gameObject: game.Game):
+  print("not implemented yet")
+
+def snapshotReads():
+  print("not implemented yet")
+
+def copyInfo():
+  print("not implemented yet")
+
+def enterThought(gameObject: game.Game, thought: str):
+  pass
+
+def notes(gameObject: game.Game):
+  menu.displayNotesMenu()
+  command = None
+  while(True):
+    command = input("Enter the command you want to do: ").lower()
+    if (command == "r"):
+      updateRead(gameObject)
+    elif (command == "t"):
+      customizeTiers()
+    elif (command == "s"):
+      snapshotReads()
+    elif (command == "c"):
+      copyInfo()
+    elif (command == "e"):
+      break
+    else:
+      enterThought(gameObject, command)
 
 
 def accessGame(gameObject: game.Game):
-  displayMenu()
+  menu.displayInGameMenu()
   while(True):
     command = input("Enter the command you want to do: ").lower()
     if (command == "multiiso"):
@@ -200,8 +241,10 @@ def accessGame(gameObject: game.Game):
       gameObject.multiISO(doDisplay=display, copyQuotes=quotes, copyLinks=links)
     if (command == "vote compilation"):
       voteOption(gameObject)
+    # if (command == "notes"):
+    #   notes(gameObject)
     if (command == "menu"):
-      displayMenu()
+      menu.displayInGameMenu()
     if (command == "add alias"):
       addAlias(gameObject)
     if (command == "remove alias"):
@@ -213,31 +256,44 @@ def accessGame(gameObject: game.Game):
     if (command == "exit"):
       return
 
-print(os.getcwd())
 if overallDirectoryName not in os.listdir():
   f = open(overallDirectoryName, "w")
   time.sleep(1)
   f.close()
 
+if readsTiers not in os.listdir():
+  csvfile = open(readsTiers, "w")
+  time.sleep(1)
+  csvwriter = csv.writer(csvfile, delimiter=",")
+  csvwriter.writerow(["lock town", "medium town", "lean town", "light town", "null", "light wolf", "lean wolf", "medium wolf", "lock wolf"])
+  csvfile.close()
+
+
+
 gamesList = games_list.GamesList(overallDirectoryName)
 gamesList.compressCSV()
-displayOverallMenu()
+menu.displayOverallMenu()
 while(True):
     command = input("Enter the command you want to do: ").lower()
     if (command == "create"):
       createGame(gamesList)
     if (command == "enter"):
       enterGame(gamesList)
-      displayOverallMenu()
+      menu.displayOverallMenu()
     if (command == "archive"):
       archiveGame(gamesList)
+    if (command == "restore"):
+      restoreGame(gamesList)
     if (command == "delete"):
       deleteGame(gamesList)
+    # if (command == "tiers"):
+    #   customizeTiers()
+    #   menu.displayOverallMenu()
     if (command == "list"):
       listGames(gamesList, showArchived=False)
     if (command == "list all"):
       listGames(gamesList)
     if (command == "menu"):
-      displayOverallMenu()
+      menu.displayOverallMenu()
     if (command == "exit"):
       break

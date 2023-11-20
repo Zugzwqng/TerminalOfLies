@@ -1,7 +1,9 @@
-import urllib
 import StringUtils as sUtil
-import time
 import post as p
+
+import urllib
+import urllib.request
+import time
 import pyperclip
 import csv
 
@@ -12,27 +14,27 @@ def fromCSV(filename: str):
     link = None
     aliases = dict()
     alignments = dict()
-    currentChoice = 0
     for line in csvreader:
         if line == []:
             pass
-        elif line == ["---------"]:
-            currentChoice += 1
-        elif currentChoice == 0:
-            link = line[0]
-        elif currentChoice == 1:
-            aliases.update([line])
-        elif currentChoice == 2:
-            alignments.update([line])
+        elif line[0] == "link":
+            link = line[1]
+        elif line[0] == "alias":
+            aliases.update([(line[1], line[2])])
+        elif line[0] == "alignment":
+            alignments.update([(line[1], line[2])])
+        elif line[0] == "removeAlias":
+            aliases.pop(line[1])
     gameObject = Game(link)
     gameObject.aliases = aliases
     gameObject.alignments = alignments
     gameObject.csvName = filename
+    gameObject.toCSV(gameObject.csvName)
     return gameObject
 
 
 class Game:
-    def __init__(self, link):
+    def __init__(self, link, getPosts=True):
         self.csvName = None
         self.link = self.getLinkToFirstPost(link)
         self.topicNumber = self.getTopicNumber(link)
@@ -40,36 +42,55 @@ class Game:
         self.playersCaseFixer = dict()
         self.aliases = dict()
         self.alignments = dict()
-        self.posts = self.initializePosts(self.topicNumber)
+        self.reads = dict()
+        self.thoughts = []
+        if getPosts:
+            self.posts = self.initializePosts(self.topicNumber)
+    
+    #returns all posts that pass the filter
+    #filter must be a function that returns True for all desired posts
+    def filterPosts(self, filter) -> list[p.Post]:
+        filteredPosts = []
+        for post in self.posts:
+            if filter(post):
+                filteredPosts.append(post)
+        return filteredPosts
 
-    def playerExists(self, player):
+
+    def playerExists(self, player: str) -> bool:
         player = player.lower()
         return self.players.issuperset([player])
 
-    def aliasExists(self, alias: str):
+    def aliasExists(self, alias: str) -> bool:
         alias = alias.lower()
         return self.aliases.get(alias) != None
 
-    def addAlias(self, player, alias):
+    def addAlias(self, player: str, alias: str) -> None:
         alias = alias.lower()
         player = player.lower()
         if alias != "unvote":
             self.aliases.update([(alias, player)])
             if self.csvName != None:
-                self.toCSV(self.csvName)
+                csvfile = open(self.csvName, 'a')
+                csvwriter = csv.writer(csvfile, delimiter=",")
+                csvwriter.writerow(["alias", alias, player])
     
-    def addAlignment(self, player, alignment):
+    def addAlignment(self, player: str, alignment: str) -> None:
         player = player.lower()
         alignment = alignment.lower()
         self.alignments.update([(player, alignment)])
         if self.csvName != None:
-                self.toCSV(self.csvName)
+                csvfile = open(self.csvName, 'a')
+                csvwriter = csv.writer(csvfile, delimiter=",")
+                csvwriter.writerow(["alignment", player, alignment])
 
-    def removeAlias(self, alias):
+    def removeAlias(self, alias: str):
         alias = alias.lower()
         self.aliases.pop(alias)
         if self.csvName != None:
-                self.toCSV(self.csvName)
+                csvfile = open(self.csvName, 'a')
+                csvwriter = csv.writer(csvfile, delimiter=",")
+                csvwriter.writerow(["removeAlias", alias])
 
     def resolveSubstringAlias(self, name):
         matchingNames = []
@@ -97,10 +118,10 @@ class Game:
     #this must be used while posts are a single string
     #this method is also the one that resolves the escape characters - if there's an escape character not being resolved, it must be added here
     #(yes this is a jank workaround)
-    def cleanStringPost(self, post):
-        post = sUtil.replaceAll(post, "\\xe2\\x80\\x94", "—")
-        post = sUtil.replaceAll(post, "\\xe2\\x80\\x99", "’")
-        post = sUtil.replaceAll(post, "\\'", "'")
+    def cleanStringPost(self, post: str):
+        post = post.replace("\\xe2\\x80\\x94", "—")
+        post = post.replace("\\xe2\\x80\\x99", "’")
+        post = post.replace("\\'", "'")
         if post.find("#") !=  -1:
             startingOffset = 0
             if post[0:2] == "b'":
@@ -130,7 +151,7 @@ class Game:
         return myfile
     
     #returns the starting post array and the topic number
-    def initializePosts(self, topicNumber):
+    def initializePosts(self, topicNumber) -> list[p.Post]:
         postStrings = []
         link = "https://www.fortressoflies.com/raw/" + topicNumber
         page = 1
@@ -170,6 +191,7 @@ class Game:
             player = input("Individually enter the name of each player you want to ISO. Enter -1 to stop. ").lower()
             if player == "-1":
                 break
+            player = self.aliases.get(player, player)
             players.append(player)
         filteredPosts = []
         for post in self.posts:
@@ -182,7 +204,7 @@ class Game:
     #this method should output the posts. if copyQuotes is true, all posts have their
     #quotes copied to the clipboard. if copyLinks is true, all posts have their links copied to the clipboard.
     #if doDisplay is true, posts are also displayed
-    def outputPosts(self, posts, doDisplay=True, copyQuotes=False, copyLinks=False):
+    def outputPosts(self, posts: list[p.Post], doDisplay=True, copyQuotes=False, copyLinks=False):
         if doDisplay:
             for post in posts:
                 print(post.displayString() + "\n")
@@ -239,13 +261,15 @@ class Game:
     def toCSV(self, filename: str):
         csvfile = open(filename, 'w')
         csvwriter = csv.writer(csvfile, delimiter=",")
-        csvwriter.writerow([self.link])
-        csvwriter.writerow(["---------"])
+        csvwriter.writerow(["link", self.link])
         for alias in self.aliases:
-            csvwriter.writerow([alias, self.aliases.get(alias)])
-        csvwriter.writerow(["---------"])
+            csvwriter.writerow(["alias", alias, self.aliases.get(alias)])
         for player in self.alignments:
-            csvwriter.writerow([player, self.alignments.get(player)])
+            csvwriter.writerow(["alignment", player, self.alignments.get(player)])
+        for read in self.reads:
+            csvwriter.writerow(["read", read, self.reads.get(read)])
+        for thought in self.thoughts:
+            csvwriter.writerow(["thought", thought])
         csvfile.close()
     
     

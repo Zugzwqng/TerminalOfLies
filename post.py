@@ -20,12 +20,12 @@ class Post:
         openQuote += topicNumber
         openQuote += "\"]"
         totalString = openQuote
-        totalString += "\n" + sUtil.replaceAll(sUtil.replaceAll(self.content, "[/vote]", "[vote]"), "[/v]", "[v]")
+        totalString += "\n" + self.content.replace("[/vote]", "[vote]").replace("[/v]", "[v]") + "\n"
         totalString += "[/quote]" + "\n"
-        return sUtil.replaceAll(totalString, "\\n", "\n")
+        return totalString.replace(r"\n", "\n")
 
     def displayString(self):
-        return self.poster + ", " + self.timestamp + ", " + self.postNumber + "\n" + sUtil.replaceAll(self.content, "\\n", "\n")
+        return self.poster + ", " + self.timestamp + ", " + self.postNumber + "\n" + self.content.replace("\\n", "\n")
     
     #returns True if the post contains an unvote
     def findUnvote(self):
@@ -62,5 +62,5 @@ class Post:
     #removes spaces and newlines from vote
     def cleanVotes(self):
         if self.vote != None:
-            self.vote = sUtil.replaceAll(self.vote, " ", "")
-            self.vote = sUtil.replaceAll(self.vote, r"\n", "")
+            self.vote = self.vote.replace(" ", "")
+            self.vote = self.vote.replace(r"\n", "")

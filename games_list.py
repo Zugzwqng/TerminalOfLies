@@ -1,6 +1,7 @@
+import game
+
 import os
 import csv
-import game
 
 class GamesList:
     def __init__(self, gamesListPath):
@@ -10,6 +11,12 @@ class GamesList:
         csvfile = open(self.gamesListPath, 'a')
         csvwriter = csv.writer(csvfile, delimiter=",")
         csvwriter.writerow(["archive", game])
+        csvfile.close()
+
+    def restoreGame(self, game):
+        csvfile = open(self.gamesListPath, 'a')
+        csvwriter = csv.writer(csvfile, delimiter=",")
+        csvwriter.writerow(["restore", game])
         csvfile.close()
 
     def deleteGame(self, game):
@@ -22,7 +29,7 @@ class GamesList:
         csvfile = open(self.gamesListPath, 'a')
         csvwriter = csv.writer(csvfile, delimiter=",")
         csvwriter.writerow(["create", gameName])
-        gameObject = game.Game(gameLink)
+        gameObject = game.Game(gameLink, getPosts=False)
         gameObject.toCSV(gameName + ".csv")
         csvfile.close()
 
@@ -65,6 +72,9 @@ class GamesList:
             elif row[0] == "archive":
                 createdGames.remove(row[1])
                 archivedGames.add(row[1])
+            elif row[0] == "restore":
+                archivedGames.remove(row[1])
+                createdGames.add(row[1])
             elif row[0] == "delete":
                 createdGames.discard(row[1])
                 archivedGames.discard(row[1])
