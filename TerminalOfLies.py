@@ -113,8 +113,11 @@ def createGame(gamesList: games_list.GamesList):
       print("This name is reserved.")
   else:
       gameThreadURL = input("Enter the URL of the game thread: ")
-      gamesList.createGame(gameTitle, gameThreadURL)
-      print("Game created successfully.")
+      try:
+        gamesList.createGame(gameTitle, gameThreadURL)
+        print("Game created successfully.")
+      except:
+        print("This URL is invalid! Or something else has gone wrong while accessing the page.")
 
 def archiveGame(gamesList: games_list.GamesList):
   gameTitle = input("Enter the title of the game you want to archive: ").lower()

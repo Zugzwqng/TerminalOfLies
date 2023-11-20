@@ -26,11 +26,11 @@ class GamesList:
         csvfile.close()
 
     def createGame(self, gameName, gameLink):
+        gameObject = game.Game(gameLink, getPosts=False)
+        gameObject.toCSV(gameName + ".csv")
         csvfile = open(self.gamesListPath, 'a')
         csvwriter = csv.writer(csvfile, delimiter=",")
         csvwriter.writerow(["create", gameName])
-        gameObject = game.Game(gameLink, getPosts=False)
-        gameObject.toCSV(gameName + ".csv")
         csvfile.close()
 
     def compressCSV(self):

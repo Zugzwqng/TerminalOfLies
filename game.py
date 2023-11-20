@@ -46,6 +46,11 @@ class Game:
         self.thoughts = []
         if getPosts:
             self.posts = self.initializePosts(self.topicNumber)
+        else:
+            try:
+                self.getPage(1, "https://www.fortressoflies.com/raw/" + self.topicNumber)
+            except:
+                raise Exception
     
     #returns all posts that pass the filter
     #filter must be a function that returns True for all desired posts
@@ -130,7 +135,7 @@ class Game:
         return None
     
     #given the link of the thread, returns the topic number.
-    def getTopicNumber(self, gameLink):
+    def getTopicNumber(self, gameLink) -> str:
         discard, remainder, discard2 = sUtil.splitOnce(gameLink, "fortressoflies.com/t/")
         discard, remainder, discard2 = sUtil.splitOnce(remainder, "/")
         result, discard, discard2 = sUtil.splitOnce(remainder, "/")
