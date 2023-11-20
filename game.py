@@ -129,7 +129,7 @@ class Game:
         post = post.replace("\\'", "'")
         if post.find("#") !=  -1:
             startingOffset = 0
-            if post[0:2] == "b'":
+            if post[0:2] == "b'" or post[0:2] == 'b"':
                 startingOffset = 2
             return (post[startingOffset:])
         return None
