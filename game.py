@@ -232,7 +232,7 @@ class Game:
     
     #returns all votes, in a list
     #a vote is in the format [votingPlayer, votingPlayerAlignment, votedPlayer, votedPlayerAlignment, postNumber]
-    def getAllVotes(self):
+    def getAllVotes(self) -> list[list[str]]:
         votes = []
         for post in self.posts:
             if post.vote != None:
@@ -259,7 +259,7 @@ class Game:
                 votedPlayers[num] = self.aliases.get(votedPlayers[num], votedPlayers[num])
         filteredVotes = []
         for vote in votes:
-            if (votingPlayers == None or vote[0] in votingPlayers) and (votingPlayerAlignments == None or vote[1] in votingPlayerAlignments) and (votedPlayers == None or vote[2] in votedPlayers) and (votedPlayersAlignment == None or vote[3] in votedPlayersAlignment):
+            if (votingPlayers == None or vote[0].lower() in votingPlayers) and (votingPlayerAlignments == None or vote[1] in votingPlayerAlignments) and (votedPlayers == None or vote[2].lower() in votedPlayers) and (votedPlayersAlignment == None or vote[3] in votedPlayersAlignment):
                 filteredVotes.append(vote)
         return filteredVotes
 
