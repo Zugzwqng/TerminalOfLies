@@ -10,6 +10,7 @@ import os
 import menu
 import csv
 
+
 import pyperclip
 #import re
 import time
@@ -78,8 +79,26 @@ def removeAlias(gameObject: game.Game):
 
 def printPlayerlist(gameObject: game.Game):
   playerlist = gameObject.getPlayerlist()
+  paddedPlayers = []
+  alignments = []
+  aliasStrings = []
+
+  maxPlayerLength = len(max(playerlist, key=(lambda p: len(p))))
   for player in playerlist:
-    print(player)
+    paddedPlayers.append((player + (" " * 22))[0:maxPlayerLength])
+    alignments.append(gameObject.alignments.get(player.lower(), "u"))
+    relevantAliases = "("
+    hasAlias = False
+    for alias in gameObject.aliases:
+      if gameObject.aliases.get(alias).lower() == player.lower():
+        relevantAliases = relevantAliases + alias + " / "
+        hasAlias = True
+    relevantAliases = relevantAliases[0:len(relevantAliases) - 3] + ")"
+    if not hasAlias:
+      relevantAliases = ""
+    aliasStrings.append(relevantAliases)
+  for num in range(len(paddedPlayers)):
+    print(f"{alignments[num]} | {paddedPlayers[num]} | {aliasStrings[num]}")
 
 def changeAlignment(gameObject: game.Game):
   player = input("Enter the name of the player you would like to change the alignment of: ").lower()

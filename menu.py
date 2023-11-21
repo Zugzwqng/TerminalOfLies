@@ -7,7 +7,7 @@ def displayInGameMenu():
   print("'Add alias'")
   print("'Remove alias'")
   print("'Align' - Modify player alignments")
-  print("'Print playerlist'")
+  print("'Print playerlist' - Prints playerlist in format 'Alignment | Name | Aliases'")
   print("'Menu'")
   print("'Exit'")
 
