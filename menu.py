@@ -1,18 +1,28 @@
 def displayInGameMenu():
-  print("Available Commands: ")
+  print("Available Commands (case insensitive): ")
   print("'MultiISO' - Copies an ISO of player(s) to the clipboard; either quotes or links")
   print("'Vote compilation' - Copies a vote compilation to the clipboard")
   # print("'Notes' - Allows you take take notes and have a reads list")
 
-  print("'Add alias'")
-  print("'Remove alias'")
+  print("'Alias' - Add an alias for a player. This alias will be resolved to their full name in most cases.")
+  print("'Remove alias' - Remove an alias")
   print("'Align' - Modify player alignments")
+  print("'Align u' - Players currently of unknown ('u') alignment are marked as the specified alignment")
+  print("'Align reset' - reset all alignments to unknown")
   print("'Print playerlist' - Prints playerlist in format 'Alignment | Name | Aliases'")
-  print("'Menu'")
-  print("'Exit'")
+  print("'Menu' - Displays this menu")
+  print("'Exit' - Exit this game, returning to the previous menu")
+
+def displayPossibleAlignments():
+  print("Possible alignments: ")
+  print("'t' - town")
+  print("'m' - mafia")
+  print("'n' - neutral")
+  print("'h' - host")
+  print("'u' - unknown")
 
 def displayOverallMenu():
-  print("Available Commands: ")
+  print("Available Commands (case insensitive): ")
   print("'create' - Create new game ")
   print("'enter' - Enter a game")
   print("'archive' - Archive a game")
@@ -24,7 +34,7 @@ def displayOverallMenu():
   # print("'tiers' - Customize tiers for reads lists")
 
   print("'menu' - Displays this menu")
-  print("'exit' - Exit")
+  print("'exit' - Exit Terminal of Lies")
 
 def displayNotesMenu():
   print("Available Commands: ")

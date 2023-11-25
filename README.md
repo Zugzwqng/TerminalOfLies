@@ -1,5 +1,5 @@
 # TerminalOfLies
-This allows players to get MultiISOs and complete votecounts for mafia games on fortressoflies.com. 
+This allows players to get MultiISOs and vote compilations for mafia games on fortressoflies.com. 
 
 To use this program for the first time: 
   1. Open your terminal, and go to the folder where you want to set things up in.

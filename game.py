@@ -34,6 +34,16 @@ def fromCSV(filename: str):
 
 
 class Game:
+    """
+        This class represents a Mafia Game.
+        csvName is the name of the csv this Game is stored in.
+        link is the URL of the game.
+        topicNumber is the topic number, as a string.
+        players is all accounts who have posted in the thread 
+            (this includes taking actions such as locking); all players in this list are lowercase.
+        playersCaseFixer is a dictionary that maps lowercase playernames to their proper casing.
+        aliases is a dictionary, supplied by the user, that maps nicknames/aliases onto their players (both are made lowercase).
+    """
     def __init__(self, link, getPosts=True):
         self.csvName = None
         self.link = self.getLinkToFirstPost(link)
@@ -63,8 +73,11 @@ class Game:
 
 
     def playerExists(self, player: str) -> bool:
-        player = player.lower()
-        return self.players.issuperset([player])
+        try:
+            player = player.lower()
+            return self.players.issuperset([player])
+        except:
+            return False
 
     def aliasExists(self, alias: str) -> bool:
         alias = alias.lower()

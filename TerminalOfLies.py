@@ -10,14 +10,9 @@ import os
 import menu
 import csv
 
-
 import pyperclip
-#import re
 import time
-#import colorama
-from colorama import Fore#, Style, init
-#init(convert=True)
-#from sys import stdout
+from colorama import Fore
 
 overallDirectoryName = "overallGamesDirectory.csv"
 readsTiers = "readTiers.csv"
@@ -34,16 +29,28 @@ def doColorTags(toBeColored, color):
   return toBeColored
 
 def voteOption(gameObject: game.Game):
-  doSubsetOfPlayers = input('If you want to see only the votes made by a subset of players, enter "s". Otherwise, enter anything else: ').lower() == "s"
-  chosenPlayers = [] if doSubsetOfPlayers else None
-  while(doSubsetOfPlayers):
+  doSubsetOfVotingPlayers = input('If you want to see only the votes made by a subset of players, enter "s". Otherwise, enter anything else: ').lower() == "s"
+  doSubsetOfVotedPlayers = input('If you want to see only votes made onto a subset of players, enter "s". Otherwise, enter anything else: ').lower() == "s"
+  chosenVotingPlayers = []
+  chosenVotedPlayers = []
+  while(doSubsetOfVotingPlayers):
     player = input("Enter the name of each player you want to see the votes of. When finished, enter -1: ").lower()
     player = gameObject.aliases.get(player, player)
     if player == "-1":
       break
-    chosenPlayers.append(player)
+    chosenVotingPlayers.append(player)
+  
+  while (doSubsetOfVotedPlayers):
+    player = input("Enter the name of each player you want to see votes on. When finished, enter -1: ").lower()
+    player = gameObject.aliases.get(player, player)
+    if player == "-1":
+      break
+    chosenVotedPlayers.append(player)
+  
   toBeCopied = ""
-  votes = gameObject.getCertainVotes(votingPlayers=chosenPlayers)
+  chosenVotingPlayers = chosenVotingPlayers if doSubsetOfVotingPlayers else None
+  chosenVotedPlayers = chosenVotedPlayers if doSubsetOfVotedPlayers else None
+  votes = gameObject.getCertainVotes(votingPlayers=chosenVotingPlayers, votedPlayers=chosenVotedPlayers)
   alignmentToColor = {"t": Fore.GREEN, "m": Fore.RED, "n": Fore.RESET, "u": Fore.RESET, "q": Fore.RESET, "h": Fore.RESET}
   #t is town, m is mafia, n is neutral, u/q is unknown, h is host
   for vote in votes:
@@ -90,7 +97,7 @@ def printPlayerlist(gameObject: game.Game):
     relevantAliases = "("
     hasAlias = False
     for alias in gameObject.aliases:
-      if gameObject.aliases.get(alias).lower() == player.lower():
+      if gameObject.aliases.get(alias, "this string is never used").lower() == player.lower():
         relevantAliases = relevantAliases + alias + " / "
         hasAlias = True
     relevantAliases = relevantAliases[0:len(relevantAliases) - 3] + ")"
@@ -100,26 +107,28 @@ def printPlayerlist(gameObject: game.Game):
   for num in range(len(paddedPlayers)):
     print(f"{alignments[num]} | {paddedPlayers[num]} | {aliasStrings[num]}")
 
-def changeAlignment(gameObject: game.Game):
-  player = input("Enter the name of the player you would like to change the alignment of: ").lower()
+def changeAlignment(gameObject: game.Game, allUnaligned=False):
+  player = input("Enter the name of the player you would like to change the alignment of: ").lower() if not allUnaligned else "unused___________________________________________________________"
   player = gameObject.aliases.get(player, player)
-  if (gameObject.playerExists(player)):
-    print("Possible alignments: ")
-    print("'t' - town")
-    print("'m' - mafia")
-    print("'n' - neutral")
-    print("'h' - host")
-    print("'u' - unknown")
+  if (allUnaligned or gameObject.playerExists(player)):
+    menu.displayPossibleAlignments()
     possibleAlignments = ["t", "m", "n", "h", "u"]
-    alignment = input("Enter the new alignment of the player: ").lower()
+    alignment = input("Enter the new alignment: ").lower()
     if alignment in possibleAlignments:
-      gameObject.addAlignment(player, alignment)
+      if allUnaligned:
+        for player in gameObject.players:
+          gameObject.addAlignment(player.lower(), alignment)
+      else:
+        gameObject.addAlignment(player, alignment)
     else:
       print("No such alignment exists!")
   else:
     print("No player with such name!")
 
-
+def resetAlignments(gameObject: game.Game):
+  for player in gameObject.players:
+    gameObject.addAlignment(player, "u")
+  print("Alignments reset!")
 
 def createGame(gamesList: games_list.GamesList):
   gameTitle = input("Enter the title you would like to use for the file that stores this game: ").lower()
@@ -267,12 +276,16 @@ def accessGame(gameObject: game.Game):
     #   notes(gameObject)
     if (command == "menu"):
       menu.displayInGameMenu()
-    if (command == "add alias"):
+    if (command == "alias"):
       addAlias(gameObject)
     if (command == "remove alias"):
       removeAlias(gameObject)
     if (command == "align"):
-      changeAlignment(gameObject)
+      changeAlignment(gameObject, allUnaligned=False)
+    if (command == "align u"):
+      changeAlignment(gameObject, allUnaligned=True)
+    if (command == "align reset"):
+      resetAlignments(gameObject)
     if (command == "print playerlist"):
       printPlayerlist(gameObject)
     if (command == "exit"):
