@@ -117,7 +117,8 @@ def changeAlignment(gameObject: game.Game, allUnaligned=False):
     if alignment in possibleAlignments:
       if allUnaligned:
         for player in gameObject.players:
-          gameObject.addAlignment(player.lower(), alignment)
+          if (gameObject.alignments.get(player, "u") == "u"):
+            gameObject.addAlignment(player.lower(), alignment)
       else:
         gameObject.addAlignment(player, alignment)
     else:
