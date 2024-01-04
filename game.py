@@ -152,6 +152,7 @@ class Game:
         discard, remainder, discard2 = sUtil.splitOnce(gameLink, "fortressoflies.com/t/")
         discard, remainder, discard2 = sUtil.splitOnce(remainder, "/")
         result, discard, discard2 = sUtil.splitOnce(remainder, "/")
+        result, discard, discard2 = sUtil.splitOnce(result, "?")
         return result
 
     #given the link of the thread, returns the link to the first post.
