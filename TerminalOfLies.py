@@ -134,6 +134,7 @@ def resetAlignments(gameObject: game.Game):
 def createGame(gamesList: games_list.GamesList):
   gameTitle = input("Enter the title you would like to use for the file that stores this game: ").lower()
   filename = gameTitle + ".csv"
+  currentFiles = os.listdir()
   if gameTitle.find(".") != -1:
       print("The filename cannot include a period. ")
   elif gamesList.gameExists(gameTitle):
@@ -141,6 +142,16 @@ def createGame(gamesList: games_list.GamesList):
   elif filename == overallDirectoryName or filename == readsTiers:
       print("This name is reserved.")
   else:
+      couldExist = False
+      for file in currentFiles:
+        if file.lower().find(gameTitle + ".") != -1:
+          couldExist = True
+      if couldExist:
+        print("This name is already present in the directory (or, there are files with the same name but a different extension, which this program may eventually want to use).")
+        print("If you've previously created and deleted a game of this name, this is nothing to worry about. Otherwise, you may be overwriting files, which you probably should not do.")
+        continueCreation = input("Enter 'y' (case insensitive) to continue: ").lower() == "y"
+        if not continueCreation:
+          return
       gameThreadURL = input("Enter the URL of the game thread: ")
       try:
         gamesList.createGame(gameTitle, gameThreadURL)
