@@ -25,7 +25,7 @@ class GamesList:
         csvwriter.writerow(["delete", game])
         csvfile.close()
 
-    def createGame(self, gameName, gameLink):
+    def createGame(self, gameName: str, gameLink: str):
         gameObject = game.Game(gameLink, getPosts=False)
         gameObject.toCSV(gameName + ".csv")
         csvfile = open(self.gamesListPath, 'a')
@@ -44,18 +44,21 @@ class GamesList:
             csvwriter.writerow(["archive", game])
         csvfile.close()
 
-    def recreateGame(self, gameName: str):
-        return game.fromCSV(gameName + ".csv")
+    def recreateGame(self, gameName: str, getPosts=True):
+        return game.fromFiles(gameName + ".csv", gameName + ".json", includePosts=getPosts)
 
-    def gameExists(self, game):
+    def gameExists(self, game: str):
+        game = game.lower()
         createdGames, archivedGames = self.getCreatedAndArchivedGames()
         return game in createdGames or game in archivedGames
     
-    def gameIsActive(self, game):
+    def gameIsActive(self, game: str):
+        game = game.lower()
         createdGames, archivedGames = self.getCreatedAndArchivedGames()
         return game in createdGames
 
-    def gameIsArchived(self, game):
+    def gameIsArchived(self, game: str):
+        game = game.lower()
         createdGames, archivedGames = self.getCreatedAndArchivedGames()
         return game in archivedGames
     

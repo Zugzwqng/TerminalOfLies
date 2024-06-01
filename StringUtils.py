@@ -1,6 +1,6 @@
 #splits the string, but only into two parts. uses the first instance of delimiter
 #returns True if the delimiter was found in the string
-def splitOnce(mainString, delimiter, ignoreCase=False):
+def splitOnce(mainString: str, delimiter: str, ignoreCase=False):
   mainStringLoweredIfApplicable = mainString
   if (ignoreCase):
     delimiter = delimiter.lower()

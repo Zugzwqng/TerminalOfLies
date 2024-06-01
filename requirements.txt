@@ -1,0 +1,5 @@
+flet==0.22.1
+flet_core==0.22.1
+matplotlib==3.8.2
+numpy==1.26.4
+pyperclip==1.8.2

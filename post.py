@@ -1,45 +1,82 @@
 import StringUtils as sUtil
 import re
-import post as p
+import datetime
+
+quoteMatcher = re.compile(r"(\[quote.*?\])(.*?)(\[/quote\])", re.IGNORECASE | re.DOTALL)
+
+
+@staticmethod
+def removeQuotes(post_content: str) -> str:
+    """
+    Given a string, removes all BBCode quotes in it.
+
+    TODO: make this not have edge case bugs. Or maybe don't, because it's likely that all 
+    edge cases just make it work even when the user messed up quote tags (and in these cases,
+    the vote wasn't intentional anyway).
+    """
+    post_has_quotes = True
+    while(post_has_quotes):
+        post_content, post_has_quotes = removeOneQuote(post_content)
+    return post_content
+
+def removeOneQuote(post_content: str) -> list:
+    """
+    Returns a list of the form [post_with_quote_removed, True if post_content was changed else False]
+    """
+    currentMatch = quoteMatcher.search(post_content)
+    if currentMatch is None:
+        return [post_content, False]
+
+    currentIndex = 0
+    while currentMatch != None:
+        start, end = currentMatch.start(1) + currentIndex, currentMatch.end(3) + currentIndex
+        currentIndex += currentMatch.end(1)
+        currentMatch = quoteMatcher.search(post_content[currentIndex:])
+    return [post_content[0:start] + post_content[end:], True]
+
+
 
 class Post:
-    def __init__(self, poster: str, timestamp: str, postNumber, content: str):
+    def __init__(self, poster: str, timestamp: str, postNumber, content: str, topicNumber: str, linkToFirstPost: str):
         self.poster = poster
         self.timestamp = timestamp
+        self.datetime_timestamp = datetime.datetime.strptime(self.timestamp, "%Y-%m-%d %H:%M:%S %Z")
         self.postNumber = str(postNumber)
         self.content = content
+        self.topicNumber = topicNumber
+        self.linkToFirstPost = linkToFirstPost
         self.vote = self.findVote()
         self.cleanVotes()
 
-    def quoteString(self, topicNumber):
-        openQuote = "[quote=\""
-        openQuote += self.poster
-        openQuote += ", post:"
-        openQuote += str(sUtil.cleanNumber(self.postNumber))
-        openQuote += ", topic:"
-        openQuote += topicNumber
-        openQuote += "\"]"
-        totalString = openQuote
+    def quoteString(self):
+        totalString = f'[quote="{self.poster}, post: {sUtil.cleanNumber(self.postNumber)}, topic: {self.topicNumber}"]'
+        # openQuote = "[quote=\""
+        # openQuote += self.poster
+        # openQuote += ", post:"
+        # openQuote += str(sUtil.cleanNumber(self.postNumber))
+        # openQuote += ", topic:"
+        # openQuote += self.topicNumber
+        # openQuote += "\"]"
+        #totalString = openQuote
         totalString += "\n" + self.content.replace("[/vote]", "[vote]").replace("[/v]", "[v]") + "\n"
         totalString += "[/quote]" + "\n"
-        return totalString.replace(r"\n", "\n")
+        return totalString
 
     def displayString(self):
-        return self.poster + ", " + self.timestamp + ", " + self.postNumber + "\n" + self.content.replace("\\n", "\n")
-    
+        return self.poster + ", " + self.timestamp + ", " + self.postNumber + "\n" + self.content
+
     #returns True if the post contains an unvote
     def findUnvote(self):
-        unvoteTester = re.compile("\[unvote\].*\[/unvote\]", re.IGNORECASE)
-        return unvoteTester.search(self.content)
+        unvoteTester = re.compile(r"\[unvote\].*\[/unvote\]", re.IGNORECASE)
+        return unvoteTester.search(removeQuotes(self.content))
     
     #given the content of a post, returns the substring that is a valid vote, or returns
     #None if no such substring exists
-    #does not remove quotes/spoilers
     def getVoteString(self):
         voteFull = re.compile(r"\[vote\].*?\[/vote\]", re.IGNORECASE)
         voteFullMini = re.compile(r"\[v\].*?\[/v\]", re.IGNORECASE)
-        fullMatch = voteFull.search(self.content)
-        miniMatch = voteFullMini.search(self.content)
+        fullMatch = voteFull.search(removeQuotes(self.content))
+        miniMatch = voteFullMini.search(removeQuotes(self.content))
         actualVote = None
         if fullMatch != None:
             actualVote = fullMatch.group(0)
@@ -64,3 +101,16 @@ class Post:
         if self.vote != None:
             self.vote = self.vote.replace(" ", "")
             self.vote = self.vote.replace(r"\n", "")
+
+    def contains(self, string: str, ignoreCase=False) -> bool:
+        if ignoreCase:
+            return self.content.lower().find(string.lower()) != -1
+        return self.content.find(string) != -1
+    
+    def stringCount(self, string: str, ignoreCase=False) -> int:
+        """
+        Returns the number of times the parameter occurs in the post.
+        """
+        if ignoreCase:
+            return self.content.lower().count(string.lower())
+        return self.content.count(string)
