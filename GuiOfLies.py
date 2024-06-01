@@ -1,7 +1,7 @@
 
 
 import reads_list
-import analyze
+# import analyze
 import game
 import games_list
 import menu
